@@ -3,3 +3,4 @@ vendor/
 sftp
 .env
 .vscode
+env.php
