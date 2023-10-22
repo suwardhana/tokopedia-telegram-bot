@@ -6,11 +6,14 @@ require __DIR__ . '/vendor/autoload.php';
 
 use SergiX44\Nutgram\Nutgram;
 use SergiX44\Nutgram\RunningMode\Webhook;
-// include env.php
+use Nickyeoman\Dbhelper;
+
 require_once("env.php");
 
 $bot = new Nutgram($_ENV['token']);
 $bot->setRunningMode(Webhook::class);
+
+$db = new Nickyeoman\Dbhelper\Dbhelp($_ENV['db_host'], $_ENV['db_user'], $_ENV['db_password'], $_ENV['db_name'], '3306');
 
 $bot->onCommand('start', function (Nutgram $bot) {
   $bot->sendMessage('Papa!!!');

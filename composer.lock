@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "5f6a871fcc44821cc1f5a370b6deefc4",
+    "content-hash": "4af20453393354d9f4cc8021b63f48db",
     "packages": [
         {
             "name": "guzzlehttp/guzzle",
@@ -436,6 +436,44 @@
                 "source": "https://github.com/laravel/serializable-closure"
             },
             "time": "2023-07-14T13:56:28+00:00"
+        },
+        {
+            "name": "nickyeoman/php-mysql-helper",
+            "version": "2.3.0",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/nickyeoman/php-mysql-helper.git",
+                "reference": "31344a5ae19e3c4990c845ca55cf82b15c43e6c2"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/nickyeoman/php-mysql-helper/zipball/31344a5ae19e3c4990c845ca55cf82b15c43e6c2",
+                "reference": "31344a5ae19e3c4990c845ca55cf82b15c43e6c2",
+                "shasum": ""
+            },
+            "type": "library",
+            "autoload": {
+                "psr-4": {
+                    "Nickyeoman\\Dbhelper\\": "src/"
+                }
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "CC0-1.0"
+            ],
+            "authors": [
+                {
+                    "name": "Nick Yeoman",
+                    "email": "c@nickyeoman.com"
+                }
+            ],
+            "description": "makes life easier when working with mysql in php8",
+            "homepage": "https://www.nickyeoman.com/blog/php/php-mysql-insert-from-array/",
+            "support": {
+                "issues": "https://github.com/nickyeoman/php-mysql-helper/issues",
+                "source": "https://github.com/nickyeoman/php-mysql-helper/tree/2.3.0"
+            },
+            "time": "2023-02-08T06:51:43+00:00"
         },
         {
             "name": "nutgram/hydrator",
