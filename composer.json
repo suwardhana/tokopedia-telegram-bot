@@ -1,6 +1,5 @@
 {
     "require": {
-        "nutgram/nutgram": "^4.10",
-        "nickyeoman/php-mysql-helper": "^2.3"
+        "nutgram/nutgram": "^4.10"
     }
 }
