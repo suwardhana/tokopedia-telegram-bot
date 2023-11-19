@@ -23,6 +23,25 @@ function extractID($inputString)
   }
 }
 
-$inputString = 'Sukses disimpan dengan ID 1S4F8 asdfasdf asdfasdfasdf asdf';
-$extractedID = extractID($inputString);
-echo $extractedID;
+function getVariablesFromUrl($url)
+{
+  $parsed = parse_url($url);
+  if (!$parsed || !isset($parsed['host']) || !isset($parsed['path'])) {
+    return false;
+  }
+
+  // Extract the path component
+  $path = $parsed['path'];
+
+  $parts = explode('/', $path);
+  $firstValue = $parts[1];
+
+  $lastValue = end($parts);
+
+  return ["toko" => $firstValue, "id_produk" => $lastValue];
+}
+
+// Example usage:
+$url = 'https://www.tokopedia.com/unilever/molto-pewangi-pakaian-fresh-hygiene-780ml?src=topads';
+$variables = getVariablesFromUrl($url);
+print_r($variables);
