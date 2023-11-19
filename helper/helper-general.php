@@ -35,13 +35,7 @@ function getVariablesFromUrl($url)
 
   $parts = explode('/', $path);
   $firstValue = $parts[1];
-
   $lastValue = end($parts);
 
   return ["toko" => $firstValue, "id_produk" => $lastValue];
 }
-
-// Example usage:
-$url = 'https://www.tokopedia.com/unilever/molto-pewangi-pakaian-fresh-hygiene-780ml?src=topads';
-$variables = getVariablesFromUrl($url);
-print_r($variables);
