@@ -62,6 +62,8 @@ $bot->onMessage(function (Nutgram $bot) {
       );
     } else if (str_contains($bot->message()->reply_to_message->text ?? "", "balas dengan harga target anda")) {
       $id_unique = extractID($bot->message()->reply_to_message->text);
+      $text = $bot->message()->text;
+      $db->update('link_data', ['harga_target' => $text], 'unique_id', $id_unique);
       $bot->sendMessage("berhasil " . $id_unique);
     } else {
       $bot->sendMessage('sorry I don\'t understand');
