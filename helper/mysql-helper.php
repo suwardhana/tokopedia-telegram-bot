@@ -49,7 +49,7 @@ class Database
             } else {
                 $sel->execute();
             }
-            $sel->setFetchMode(PDO::FETCH_OBJ);
+            $sel->setFetchMode(PDO::FETCH_ASSOC);
             return $sel;
         } catch (PDOException $exception) {
             $this->setErrorMessage($exception->getMessage());
@@ -155,12 +155,12 @@ class Database
      * @param  string $table table name
      * @return array recordset
      */
-    public function fetchAll($table)
+    public function fetchAll($table, $where = null)
     {
-        $sel = $this->pdo->prepare("SELECT * FROM $table");
+        $sel = $this->pdo->prepare("SELECT * FROM $table " . $where);
         try {
             $sel->execute();
-            $sel->setFetchMode(PDO::FETCH_OBJ);
+            $sel->setFetchMode(PDO::FETCH_ASSOC);
             return $sel;
         } catch (PDOException $exception) {
             $this->setErrorMessage($exception->getMessage());
