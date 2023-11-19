@@ -1,4 +1,5 @@
 <?php
+
 /**
  * PDO mysql database helper class
  *
@@ -23,9 +24,7 @@ class Database
             $this->pdo = new PDO("mysql:host=" . $hostname . ";dbname=" . $db_name . ";port=" . $port_number, $username_db, $password_db);
             $this->pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
             $this->pdo->setAttribute(PDO::MYSQL_ATTR_INIT_COMMAND, "SET sql_mode=(SELECT REPLACE(@@sql_mode,'ONLY_FULL_GROUP_BY',''))");
-
-        }
-        catch (PDOException $e) {
+        } catch (PDOException $e) {
             echo "error " . $e->getMessage();
         }
     }
@@ -52,13 +51,11 @@ class Database
             }
             $sel->setFetchMode(PDO::FETCH_OBJ);
             return $sel;
-        }
-        catch (PDOException $exception) {
+        } catch (PDOException $exception) {
             $this->setErrorMessage($exception->getMessage());
             echo $this->getErrorMessage();
             exit();
         }
-
     }
 
     /**
@@ -125,8 +122,7 @@ class Database
             $sel->setFetchMode(PDO::FETCH_OBJ);
             $obj = $sel->fetch();
             return $obj;
-        }
-        catch (PDOException $exception) {
+        } catch (PDOException $exception) {
             $this->setErrorMessage($exception->getMessage());
             echo $this->getErrorMessage();
         }
@@ -147,8 +143,7 @@ class Database
             $sel->setFetchMode(PDO::FETCH_OBJ);
             $obj = $sel->fetch();
             return $obj;
-        }
-        catch (PDOException $exception) {
+        } catch (PDOException $exception) {
             $this->setErrorMessage($exception->getMessage());
             echo $this->getErrorMessage();
         }
@@ -167,8 +162,7 @@ class Database
             $sel->execute();
             $sel->setFetchMode(PDO::FETCH_OBJ);
             return $sel;
-        }
-        catch (PDOException $exception) {
+        } catch (PDOException $exception) {
             $this->setErrorMessage($exception->getMessage());
             echo $this->getErrorMessage();
         }
@@ -287,8 +281,7 @@ class Database
         try {
             $ins->execute($data);
             return true;
-        }
-        catch (PDOException $exception) {
+        } catch (PDOException $exception) {
             $this->setErrorMessage($exception->getMessage());
             return false;
         }
@@ -300,14 +293,17 @@ class Database
      * @param  array $primary_key_value primary key value recordset
      * @return array                    array recordset
      */
-    public function mapper($update_value,$primary_key_value) {
-      $index=0;
-      foreach ($update_value as $value) {
-      $primary_value = $primary_key_value[$index];
-      $append[] = array_map(function ($str) use($primary_value) { return "WHEN '".$primary_value."' THEN '$str'"; }, $value);
-      $index++;
-      }
-      return $append;
+    public function mapper($update_value, $primary_key_value)
+    {
+        $index = 0;
+        foreach ($update_value as $value) {
+            $primary_value = $primary_key_value[$index];
+            $append[] = array_map(function ($str) use ($primary_value) {
+                return "WHEN '" . $primary_value . "' THEN '$str'";
+            }, $value);
+            $index++;
+        }
+        return $append;
     }
 
     /**
@@ -319,27 +315,27 @@ class Database
      * @return boolean update query
      */
 
-    public function updateMulti($table_name,$update_value,$primary_key_name,$primary_key_value) {
+    public function updateMulti($table_name, $update_value, $primary_key_name, $primary_key_value)
+    {
 
-        $data_mapper_update = $this->mapper($update_value,$primary_key_value);
+        $data_mapper_update = $this->mapper($update_value, $primary_key_value);
         $data_mapper = array_keys($data_mapper_update[0]);
 
-          $collection = [];
+        $collection = [];
 
         foreach ($data_mapper as $key) {
-          $collection[] = "$key = (CASE $primary_key_name ".implode(' ', array_unique(
-              // `array_column` will give you all values under `$key`
-              array_column($data_mapper_update, $key)
-          ))." END)";
+            $collection[] = "$key = (CASE $primary_key_name " . implode(' ', array_unique(
+                // `array_column` will give you all values under `$key`
+                array_column($data_mapper_update, $key)
+            )) . " END)";
         }
-        $primary_key_quote = sprintf("'%s'", implode("','", $primary_key_value ) );
-        $query = "UPDATE $table_name SET ".implode(",", $collection)." WHERE $primary_key_name IN ($primary_key_quote)";
+        $primary_key_quote = sprintf("'%s'", implode("','", $primary_key_value));
+        $query = "UPDATE $table_name SET " . implode(",", $collection) . " WHERE $primary_key_name IN ($primary_key_quote)";
         $ins = $this->pdo->prepare($query);
         try {
             $ins->execute();
             return true;
-        }
-        catch (PDOException $exception) {
+        } catch (PDOException $exception) {
             $this->setErrorMessage($exception->getMessage());
             return false;
         }
@@ -369,8 +365,7 @@ class Database
         try {
             $ins->execute();
             return true;
-        }
-        catch (PDOException $exception) {
+        } catch (PDOException $exception) {
             $this->setErrorMessage($exception->getMessage());
             return false;
         }
@@ -408,12 +403,41 @@ class Database
         try {
             $ins->execute($data);
             return true;
-        }
-        catch (PDOException $exception) {
+        } catch (PDOException $exception) {
             $this->setErrorMessage($exception->getMessage());
             return false;
         }
+    }
 
+    /**
+     * update record
+     *
+     * @param string $table table name
+     * @param array  $dat   associative array 'col'=>'val'
+     * @param string $id    primary key column name
+     * @param int    $val   key value
+     */
+    public function update_where($table, $dat, $where)
+    {
+        if ($dat !== null) {
+            $data = array_values($dat);
+        }
+        array_push($data, $where);
+        //grab keys
+        $cols = array_keys($dat);
+        $mark = array();
+        foreach ($cols as $col) {
+            $mark[] = $col . "=?";
+        }
+        $im  = implode(', ', $mark);
+        $ins = $this->pdo->prepare("UPDATE $table SET $im where ?");
+        try {
+            $ins->execute($data);
+            return true;
+        } catch (PDOException $exception) {
+            $this->setErrorMessage($exception->getMessage());
+            return false;
+        }
     }
 
     /**
@@ -432,8 +456,7 @@ class Database
         try {
             $sel->execute($data);
             return true;
-        }
-        catch (PDOException $exception) {
+        } catch (PDOException $exception) {
             $this->setErrorMessage($exception->getMessage());
             return false;
         }
@@ -450,7 +473,6 @@ class Database
         fwrite($fp, $isi);
         fclose($fp);
         return 1;
-
     }
     //hapus directory
     function deleteDirectory($dir)
@@ -470,8 +492,7 @@ class Database
                 if (!$this->deleteDirectory($dir . "/" . $item)) {
                     return false;
                 }
-            }
-            ;
+            };
         }
         return rmdir($dir);
     }
@@ -485,8 +506,9 @@ class Database
         //  $mod = $this->fetchSingleRow('sys_menu','nav_act',$nav);
         if ($nav != '') {
             $menu = $this->query(
-                "select * from sys_menu where url=?", array(
-                'url' => $nav
+                "select * from sys_menu where url=?",
+                array(
+                    'url' => $nav
                 )
             );
 
@@ -505,7 +527,6 @@ class Database
                     } else {
                         $pilih = "";
                     }
-
                 } else {
                     $data = $this->fetchSingleRow('sys_menu', 'id', $men->parent);
 
@@ -518,9 +539,6 @@ class Database
                         $pilih = "";
                     }
                 }
-
-
-
             }
         }
 
@@ -550,7 +568,6 @@ class Database
                         }
                         $html .= ucwords($menu['items'][$itemId]['page_name']) . "</a></li>";
                     }
-
                 }
 
                 if (isset($menu['parents'][$itemId])) {
@@ -573,7 +590,6 @@ class Database
                     $html .= "</ul></li>";
                 }
             }
-
         }
         return $html;
     }
@@ -581,15 +597,15 @@ class Database
     public function createMenu()
     {
         // Select all entries from the menu table
-        $result=$this->query(
+        $result = $this->query(
             "select sys_menu.*,sys_menu_role.read_act,sys_menu_role.insert_act,sys_menu_role.update_act,sys_menu_role.delete_act,sys_menu_role.group_level from sys_menu
         left join sys_menu_role on sys_menu.id=sys_menu_role.id_menu
         where sys_menu_role.group_level=? and sys_menu_role.read_act=? and tampil=? and hide=? ORDER BY parent, urutan_menu asc",
             array(
-            'sys_menu_role.group_level'=>$_SESSION['group_level'],
-            'sys_menu_role.read_act'=>'Y',
-            'tampil'=>'Y',
-            'hide' => 'N'
+                'sys_menu_role.group_level' => $_SESSION['group_level'],
+                'sys_menu_role.read_act' => 'Y',
+                'tampil' => 'Y',
+                'hide' => 'N'
             )
         );
 
@@ -604,7 +620,7 @@ class Database
 
             $items = $this->converObjToArray($items);
 
-              // Creates entry into items array with current menu item id ie.
+            // Creates entry into items array with current menu item id ie.
             $menu['items'][$items['id']] = $items;
             // Creates entry into parents array. Parents array contains a list of all items with children
             $menu['parents'][$items['parent']][] = $items['id'];
@@ -681,7 +697,6 @@ class Database
             $path = $path . $actual_image_name;
             copy($uploadedfile, $path);
         }
-
     }
 
     public function uploadFile($uploadedfile, $path, $actual_image_name)
@@ -889,7 +904,6 @@ class Database
         $this->getFilesFromFolder($fd, 'template/');
         foreach ($str_data as $str => $value) {
             $this->addFile($str, $value);
-
         }
 
         header("Content-Disposition: attachment; filename=" . $this->cs(basename($put_into)) . ".zip");
@@ -909,10 +923,11 @@ class Database
     {
         $check_access = $this->fetchCustomSingle(
             "select sys_menu.url from sys_menu inner join sys_menu_role on sys_menu.id=sys_menu_role.id_menu
-    where sys_menu_role.group_level=? and sys_menu_role.read_act=?", array(
-            'group_level' => $_SESSION['group_level'],
-            'read_act' => 'Y',
-            'url' => $url
+    where sys_menu_role.group_level=? and sys_menu_role.read_act=?",
+            array(
+                'group_level' => $_SESSION['group_level'],
+                'read_act' => 'Y',
+                'url' => $url
             )
         );
         if ($check_access) {
@@ -929,7 +944,7 @@ class Database
      * @param  string $url
      * @return void
      */
-    public function userCan($role_act,$url="")
+    public function userCan($role_act, $url = "")
     {
 
         $array_act = array(
@@ -939,7 +954,7 @@ class Database
             'delete' => 'delete_act',
             'import' => 'import_act'
         );
-        if($url!="") {
+        if ($url != "") {
             $url = $url;
         } else {
             $url = uri_segment(0);
@@ -947,10 +962,11 @@ class Database
 
         $check_access = $this->fetchCustomSingle(
             "select read_act,insert_act,update_act,delete_act,sys_menu.url from sys_menu inner join sys_menu_role on sys_menu.id=sys_menu_role.id_menu
-        where hide='N' and sys_menu_role.group_level=? and $array_act[$role_act]=? and url=?", array(
-            'group_level' => $_SESSION['group_level'],
-            "$array_act[$role_act]" => 'Y',
-            'url' => $url
+        where hide='N' and sys_menu_role.group_level=? and $array_act[$role_act]=? and url=?",
+            array(
+                'group_level' => $_SESSION['group_level'],
+                "$array_act[$role_act]" => 'Y',
+                'url' => $url
             )
         );
         if ($check_access) {
@@ -962,12 +978,13 @@ class Database
     public function roleUserMenu()
     {
         //simpan role url page user di array sesuai login session level
-        $role_user=array();
+        $role_user = array();
         foreach ($this->query(
             "select sys_menu.url from sys_menu inner join sys_menu_role on sys_menu.id=sys_menu_role.id_menu
-          where hide='N' and sys_menu_role.group_level=? and sys_menu_role.read_act=?", array('sys_menu_role.group_level'=>$_SESSION['group_level'],'sys_menu_role.read_act'=>'Y')
+          where hide='N' and sys_menu_role.group_level=? and sys_menu_role.read_act=?",
+            array('sys_menu_role.group_level' => $_SESSION['group_level'], 'sys_menu_role.read_act' => 'Y')
         ) as $role) {
-            $role_user[]=$role->url;
+            $role_user[] = $role->url;
         }
         return $role_user;
     }
