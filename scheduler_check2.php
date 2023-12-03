@@ -1,4 +1,5 @@
 <?php
+set_time_limit(60);
 ini_set('display_errors', 1);
 ini_set('display_startup_errors', 1);
 error_reporting(E_ALL);
@@ -10,7 +11,7 @@ require_once("helper/mysql-helper.php");
 require_once("helper/helper-general.php");
 
 $db = new DataBase($_ENV['db_host'], 3306, $_ENV['db_user'], $_ENV['db_password'], $_ENV['db_name']);
-$pdo = $db->query("select * from link_data where notif_sent = 0");
+$pdo = $db->query("select * from link_data where notif_sent = 0 limit 25");
 $data_link = $pdo->fetchAll(PDO::FETCH_ASSOC);
 
 // print('<pre>' . print_r($data, true) . '</pre>');
@@ -21,8 +22,8 @@ $handles = [];
 $unique_id_target = [];
 $index = 0;
 foreach ($data_link as $url) {
-  $url_curl = $url['link_tokped'];
-  $handle = curl_init($url_curl);
+  $extracted = getVariablesFromUrl($url['link_tokped']);
+  $handle = curl_init();
   curl_setopt_array($handle, array(
     CURLOPT_URL => 'https://gql.tokopedia.com/graphql/PDPGetLayoutQuery',
     CURLOPT_RETURNTRANSFER => true,
@@ -36,8 +37,8 @@ foreach ($data_link as $url) {
     {
       "operationName": "PDPGetLayoutQuery",
       "variables": {
-        "shopDomain": "unilever",
-        "productKey": "molto-pewangi-pakaian-fresh-hygiene-780ml",
+        "shopDomain": "' . $extracted['toko'] . '",
+        "productKey": "' . $extracted['id_produk'] . '",
         "layoutID": "",
         "apiVersion": 1,
         "extParam": ""
@@ -76,11 +77,17 @@ do {
 $results = [];
 foreach ($handles as $handle) {
   $response = curl_multi_getcontent($handle);
-
-  // Process the response and check the price
-  // Add your logic to check if the price is lower than 1000000
-
-  $results[] = $response;
+  $data = json_decode($response);
+  $price = 99999999;
+  if (isset($data[0]->data->pdpGetLayout->components)) {
+    $components = $data[0]->data->pdpGetLayout->components;
+    foreach ($components as $c) {
+      if ($c->name == "product_content") {
+        $price = $c->data[0]->price->value;
+      }
+    }
+  }
+  $results[] = $price;
 
   curl_multi_remove_handle($mh, $handle);
   curl_close($handle);
@@ -90,3 +97,13 @@ curl_multi_close($mh);
 
 // Handle the results as needed
 print_r($results);
+print_r($unique_id_target);
+
+for ($i = 0; $i < $index; $i++) {
+  if ($unique_id_target[$i]['target'] > $results[$i]) {
+    echo "masuk if";
+    echo "unique_id = '{$unique_id_target[$i]['uniqid']}'";
+    $db->update_notif_sent($unique_id_target[$i]['uniqid']);
+    print_r($db->getErrorMessage());
+  }
+}
