@@ -433,8 +433,23 @@ class Database
         $ins = $this->pdo->prepare("UPDATE $table SET $im where ?");
         try {
             $ins->execute($data);
+            // echo "pdo jalan";
             return true;
         } catch (PDOException $exception) {
+            echo "pdo gak jalan";
+            $this->setErrorMessage($exception->getMessage());
+            return false;
+        }
+    }
+    public function update_notif_sent($unique_id)
+    {
+        $ins = $this->pdo->prepare("UPDATE link_data set notif_sent = 1, notif_queue = 1 where unique_id = '" . $unique_id . "'");
+        try {
+            $ins->execute();
+            // echo "pdo jalan";
+            return true;
+        } catch (PDOException $exception) {
+            echo "pdo gak jalan";
             $this->setErrorMessage($exception->getMessage());
             return false;
         }
