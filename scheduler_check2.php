@@ -10,6 +10,8 @@ require_once("env.php");
 require_once("helper/mysql-helper.php");
 require_once("helper/helper-general.php");
 
+use SergiX44\Nutgram\Nutgram;
+
 $db = new DataBase($_ENV['db_host'], 3306, $_ENV['db_user'], $_ENV['db_password'], $_ENV['db_name']);
 $pdo = $db->query("select * from link_data where notif_sent = 0 limit 25");
 $data_link = $pdo->fetchAll(PDO::FETCH_ASSOC);
@@ -64,6 +66,7 @@ foreach ($data_link as $url) {
   curl_multi_add_handle($mh, $handle);
   $handles[] = $handle;
   $unique_id_target[$index]['uniqid'] = $url['unique_id'];
+  $unique_id_target[$index]['sender_id'] = $url['sender_id'];
   $unique_id_target[$index]['target'] = $url['harga_target'];
   $unique_id_target[$index]['url'] = $url['link_tokped'];
   $index++;
@@ -95,15 +98,15 @@ foreach ($handles as $handle) {
 
 curl_multi_close($mh);
 
-// Handle the results as needed
-print_r($results);
-print_r($unique_id_target);
 
 for ($i = 0; $i < $index; $i++) {
   if ($unique_id_target[$i]['target'] > $results[$i]) {
-    echo "masuk if";
-    echo "unique_id = '{$unique_id_target[$i]['uniqid']}'";
-    $db->update_notif_sent($unique_id_target[$i]['uniqid']);
+    // $db->update_notif_sent($unique_id_target[$i]['uniqid']);
+    $bot = new Nutgram($_ENV['token']);
+    $bot->sendMessage(
+      chat_id: "{$unique_id_target[$i]['sender_id']}",
+      text: "Harga target tercapai\n{$unique_id_target[$i]['url']} \n{$results[$i]}",
+    );
     print_r($db->getErrorMessage());
   }
 }
