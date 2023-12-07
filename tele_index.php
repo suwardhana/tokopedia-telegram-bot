@@ -19,13 +19,7 @@ $bot->setRunningMode(Webhook::class);
 
 $bot->onCommand('start', function (Nutgram $bot) {
   $bot->sendMessage(
-    text: 'balas dengan harga target!',
-    reply_to_message_id: $bot->message()->message_id,
-    reply_markup: ForceReply::make(
-      force_reply: true,
-      input_field_placeholder: '300000',
-      selective: true,
-    ),
+    text: 'Selamat datang di Tokopedia Price Alert Telegram Bot!'
   );
 });
 
